@@ -1,6 +1,6 @@
 module.exports = {
     reactStrictMode: true,
     env: {
-        ENDPOINT: 'https://613b9431110e000017a456c5.mockapi.io/',
+        ENDPOINT: 'http://113.161.225.11:3002',
     }
 }

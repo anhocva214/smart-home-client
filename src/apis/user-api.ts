@@ -1,31 +1,13 @@
-import BaseAxios from '@services/api'
-import { User } from 'src/models/response/user.model'
-import * as urls from './urls'
+import { baseApi } from "@services/api";
+import { UserRegisterDTO } from "src/models/user.model";
+import { urls } from "./exports";
 
-export const test = async () : Promise<User[]> => {
 
-    var users : User[] = []
 
-    try{
-        let response: any[] = await BaseAxios({
-            url: urls.users,
-            method: 'GET'
-        })
-
-        let keys = Object.keys(response)
-        keys.forEach(key=>{
-            users.push(new User(response[key]))
-        })
-        // console.log(users)
-       
-    }
-    catch(err) {
-        console.log(err)
-    }
-
-    
-    
-
- 
-    return users
+export function registerUser(data: UserRegisterDTO){
+    return baseApi({
+        url: urls.registerUser,
+        method: 'POST',
+        data
+    })
 }

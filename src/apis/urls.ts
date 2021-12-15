@@ -1,2 +1,1 @@
-
-export const users = "/api/v1/users";
+export const registerUser = '/user/register'
