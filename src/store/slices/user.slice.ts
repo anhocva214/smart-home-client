@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { RootState } from '@store/reducer'
-import { User } from 'src/models/response/user.model'
+// import { User } from 'src/models/response/user.model'
 
 export interface UserState {
-    users: User[];
+    users: any[];
 }
 
 export const initialState: UserState = {
@@ -14,7 +14,7 @@ export const userSlice = createSlice({
     name: 'user',
     initialState,
     reducers: {
-        getUsers: (state, {payload}: PayloadAction<User[]>) => {
+        getUsers: (state, {payload}: PayloadAction<any[]>) => {
             state.users = payload
         },
     },
