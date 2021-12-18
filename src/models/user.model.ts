@@ -15,3 +15,14 @@ export class UserRegisterDTO {
         this.email = obj?.email || null;
     }
 }
+
+export class UserLoginDTO {
+    username: string
+    password: string
+    constructor()
+    constructor(obj?: UserRegisterDTO)
+    constructor(obj?: any){
+        this.username = obj?.username || null;
+        this.password = obj?.password || null;
+    }
+}

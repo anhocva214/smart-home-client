@@ -1,4 +1,3 @@
-// import { userActions } from '@actions/user.action'
 import { userSelector } from '@store/slices/user.slice'
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react'
@@ -9,9 +8,9 @@ import {useState} from 'react'
 import { alertActions } from '@actions/exports';
 
 
-export default function Home() {
+export default function LoginPage() {
 
-  const dispatch  =useDispatch()
+  const dispatch = useDispatch()
 
   const { users } = useSelector(userSelector)
 
@@ -24,16 +23,15 @@ export default function Home() {
   const onFinish = async (e)=>{
     setMessage('')
     try{
-      let res = await usersApi.registerUser(new UserRegisterDTO(e))
+      let res = await usersApi.loginUser(new UserRegisterDTO(e))
       // setMessage(res.message)
       dispatch(alertActions.alertSuccess(res.message))
-
 
     } 
     catch(err){
       console.log(err)
       // setMessage(err.message)
-     dispatch( alertActions.alertError(err.message))
+      dispatch(alertActions.alertError(err.message))
 
     }
    
@@ -68,7 +66,8 @@ export default function Home() {
         }}
       >
 
-        <h1>Đăng ký</h1>
+          <h1>Đăng nhập</h1>
+
         <h2 style={{textAlign: 'center', color: 'red'}}>{message}</h2>
 
         <Form.Item
@@ -87,28 +86,6 @@ export default function Home() {
           <Input.Password />
         </Form.Item>
 
-        <Form.Item
-          label="Last name"
-          name="last_name"
-          rules={[{ required: true, message: 'Please input your username!' }]}
-        >
-          <Input />
-        </Form.Item>
-
-        <Form.Item
-          label="First name"
-          name="first_name"
-          rules={[{ required: true, message: 'Please input your username!' }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Email"
-          name="email"
-          rules={[{ required: true, message: 'Please input your username!' }]}
-        >
-          <Input />
-        </Form.Item>
        
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
@@ -121,7 +98,7 @@ export default function Home() {
           display: 'flex',
           justifyContent: 'flex-end'
         }}>
-          <a role="button" href="/login" >Login now !</a>
+          <a role="button" href="/" >Register new a user</a>
         </div>
       </Form>
     </div>
