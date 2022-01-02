@@ -4,8 +4,10 @@ import { useEffect } from 'react'
 import { Form, Input, Button, Checkbox } from 'antd';
 import { usersApi } from '@apis/exports'
 import { UserRegisterDTO } from 'src/models/user.model'
-import {useState} from 'react'
+import { useState } from 'react'
 import { alertActions } from '@actions/exports';
+import Router from 'next/router'
+import cookie from 'react-cookies'
 
 
 export default function LoginPage() {
@@ -15,29 +17,37 @@ export default function LoginPage() {
   const { users } = useSelector(userSelector)
 
   const [message, setMessage] = useState('')
+  const [loadingLogin, setLoadingLogin] = useState(false)
 
   useEffect(() => {
     console.log(users)
   }, [users])
 
-  const onFinish = async (e)=>{
+  const onFinish = async (e) => {
     setMessage('')
-    try{
+    try {
+      setLoadingLogin(true)
       let res = await usersApi.loginUser(new UserRegisterDTO(e))
+      console.log(res)
       // setMessage(res.message)
+      Router.push('/home')
       dispatch(alertActions.alertSuccess(res.message))
+      setLoadingLogin(false)
+      cookie.save("access_token", res.data.access_token, {path: '/'})
 
-    } 
-    catch(err){
+
+    }
+    catch (err) {
       console.log(err)
+      setLoadingLogin(false)
       // setMessage(err.message)
       dispatch(alertActions.alertError(err.message))
 
     }
-   
+
   }
 
-  const onFinishFailed = ()=>{
+  const onFinishFailed = () => {
 
   }
 
@@ -45,7 +55,7 @@ export default function LoginPage() {
     <div
       style={{
         display: 'flex',
-        alignItems: 'center', 
+        alignItems: 'center',
         justifyContent: 'center',
       }}
     >
@@ -66,9 +76,9 @@ export default function LoginPage() {
         }}
       >
 
-          <h1>Đăng nhập</h1>
+        <h1>Đăng nhập</h1>
 
-        <h2 style={{textAlign: 'center', color: 'red'}}>{message}</h2>
+        <h2 style={{ textAlign: 'center', color: 'red' }}>{message}</h2>
 
         <Form.Item
           label="Username"
@@ -86,7 +96,7 @@ export default function LoginPage() {
           <Input.Password />
         </Form.Item>
 
-       
+
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
           <Button type="primary" htmlType="submit">

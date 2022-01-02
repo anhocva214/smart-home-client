@@ -7,6 +7,7 @@ import { usersApi } from '@apis/exports'
 import { UserRegisterDTO } from 'src/models/user.model'
 import {useState} from 'react'
 import { alertActions } from '@actions/exports';
+import Router from 'next/router';
 
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
   const { users } = useSelector(userSelector)
 
   const [message, setMessage] = useState('')
+  const [loadingRegister, setLoadingRegister] = useState(false)
 
   useEffect(() => {
     console.log(users)
@@ -24,13 +26,16 @@ export default function Home() {
   const onFinish = async (e)=>{
     setMessage('')
     try{
+      setLoadingRegister(true)
       let res = await usersApi.registerUser(new UserRegisterDTO(e))
       // setMessage(res.message)
       dispatch(alertActions.alertSuccess(res.message))
-
+      Router.push('/login')
+      setLoadingRegister(false)
 
     } 
     catch(err){
+      setLoadingRegister(false)
       console.log(err)
       // setMessage(err.message)
      dispatch( alertActions.alertError(err.message))
@@ -112,7 +117,7 @@ export default function Home() {
        
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit">
+          <Button loading={loadingRegister} type="primary" htmlType="submit">
             Submit
           </Button>
         </Form.Item>
