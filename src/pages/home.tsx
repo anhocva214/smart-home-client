@@ -116,7 +116,9 @@ export default function HomePage() {
           client.on('message', (topic, payload) => {
             console.log('Received Message', topic, payload.toString())
             if (topic == TOPIC){
-                setDataLatest(new MetaData(JSON.parse(payload.toString())))
+                let s = payload.toString().indexOf("{")
+
+                setDataLatest(new MetaData(JSON.parse(payload.toString().slice(s))))
             }
           })
     }, [])
