@@ -1,12 +1,3 @@
-# Template Next Js - Typescript
-
-### Features:
-    ✅ Redux
-    ✅ Redux Toolkit
-    ✅ Redux Thunk
-    ✅ Font Awesome 6 Pro
-
-
 ### Install
 ```bash
 yarn install
@@ -21,6 +12,16 @@ yarn dev
 ```bash
 yarn build & yarn start
 ```
+
+### MQTT 
+`get/type_data`
+```
+1 # không mã hoá
+2 # mã hoá chacha
+3 # mã hoá aes
+```
+
+
 
 ### Create a slice (redux toolkit)
 ```bash

@@ -19,20 +19,20 @@ const CardDevice = ({ title, value }: { title: string, value: string }) => (
 )
 
 const host = '113.161.225.11'
-const port = '3883'
-const clientId = `mqtt_${Math.random().toString(16).slice(3)}`
+const port = '4884'
+const clientId = `mqtt_client_nextjs`
 const connectUrl = `mqtt://${host}:${port}`
 
-// var options = {
-//     clientId: "clientId",
-//     username: "username",
-//     password: "password",
-//     protocolId: "MQTT",
-//     protocolVersion: 4,
+var options = {
+    clientId:clientId,
+    username: "username",
+    password: "password",
+    protocolId: "MQTT",
+    protocolVersion: 4,
 
-//     port: 3883,
-//     clean: true
-// };
+    port: 4884,
+    clean: true
+};
 // const client = mqtt.connect(connectUrl, options)
 
 // client.on('connect', function () {
@@ -54,34 +54,34 @@ export default function HomePage() {
     const [dataLatest, setDataLatest] = useState<MetaData>(new MetaData())
     const [devIDs, setDevIDs] = useState<string[]>([])
     const [selectDevID, setSelectDevID] = useState(null)
-    const [dataMetaData, setDataMetaData] = useState<MetaData[]>([])
+    // const [dataMetaData, setDataMetaData] = useState<MetaData[]>([])
 
     // const { connectionStatus } = useMqttState();
 
-    useEffect(() => {
-        setInterval(() => {
-            (async () => {
-                let response = await deviceApi.getListMetaData()
-                let data = response.data.map(item => new MetaData(item))
-                setDataMetaData(data)
-                setDevIDs(Array.from(
-                    new Set(data.map((item: MetaData) => {
-                        return item.devID
-                    }))
-                ))
-            })()
-        }, 1000)
+    // useEffect(() => {
+    //     setInterval(() => {
+    //         (async () => {
+    //             let response = await deviceApi.getListMetaData()
+    //             let data = response.data.map(item => new MetaData(item))
+    //             setDataMetaData(data)
+    //             setDevIDs(Array.from(
+    //                 new Set(data.map((item: MetaData) => {
+    //                     return item.devID
+    //                 }))
+    //             ))
+    //         })()
+    //     }, 1000)
 
-        // console.log("connectionStatus: ", connectionStatus)
-    }, [])
+    //     // console.log("connectionStatus: ", connectionStatus)
+    // }, [])
 
-    useEffect(() => {
-        // console.log(selectDevID)
-        if (dataMetaData.length > 0 && !!selectDevID) {
-            let data = dataMetaData.filter(item => item.devID == selectDevID)
-            setDataLatest(data[data.length - 1])
-        }
-    }, [selectDevID, dataMetaData])
+    // useEffect(() => {
+    //     // console.log(selectDevID)
+    //     if (dataMetaData.length > 0 && !!selectDevID) {
+    //         let data = dataMetaData.filter(item => item.devID == selectDevID)
+    //         setDataLatest(data[data.length - 1])
+    //     }
+    // }, [selectDevID, dataMetaData])
 
     // useEffect(() => {
     //     console.log(devIDs)
@@ -99,6 +99,28 @@ export default function HomePage() {
 
     // }, [client])
 
+    useEffect(() => {
+        const client = mqtt.connect(connectUrl, options);
+        const TOPIC = '/nodejs/mqtt'
+        client.on('connect', () => {
+            console.log('Connected')
+            client.subscribe([TOPIC], () => {
+              console.log(`Subscribe to topic '${TOPIC}'`)
+            })
+            // client.publish(topic, 'Client:', { qos: 0, retain: false }, (error) => {
+            //   if (error) {
+            //     console.error(error)
+            //   }
+            // })
+          })
+          client.on('message', (topic, payload) => {
+            console.log('Received Message', topic, payload.toString())
+            if (topic == TOPIC){
+                setDataLatest(new MetaData(JSON.parse(payload.toString())))
+            }
+          })
+    }, [])
+
     return (
         // <Connector brokerUrl="wss://test.mosquitto.org:1884">
 
@@ -113,6 +135,12 @@ export default function HomePage() {
                 {devIDs.filter(item => !!item).map((item) => (
                     <Option key={item} value={item} >{item}</Option>
                 ))}
+            </Select>
+
+            <Select style={{ width: 350, marginLeft: 100 }} defaultValue={1} onChange={setSelectDevID}>
+                <Option value={1} >Không mã hoá</Option>
+                <Option disabled value={2} >Mã hoá ChaCha</Option>
+                <Option  disabled value={3} >Mã hoá AES</Option>
             </Select>
 
             <div style={{ marginTop: 30 }} />
