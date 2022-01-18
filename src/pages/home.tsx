@@ -19,21 +19,22 @@ const CardDevice = ({ title, value }: { title: string, value: string }) => (
 )
 
 const host = '113.161.225.11'
+// const host = 'localhost'
 const port = '4884'
 const clientId = `mqtt_client_nextjs`
 const connectUrl = `mqtt://${host}:${port}`
 
 var options = {
-    clientId:clientId,
+    clientId: clientId,
     username: "username",
     password: "password",
     protocolId: "MQTT",
     protocolVersion: 4,
 
-    port: 4884,
+    port,
     clean: true
 };
-// const client = mqtt.connect(connectUrl, options)
+const client = mqtt.connect(connectUrl, options)
 
 // client.on('connect', function () {
 //     client.subscribe('presence', function (err) {
@@ -50,7 +51,7 @@ var options = {
 // })
 
 export default function HomePage() {
-
+    // const [client, setClient] = useState(mqtt.connect(connectUrl, options))
     const [dataLatest, setDataLatest] = useState<MetaData>(new MetaData())
     const [devIDs, setDevIDs] = useState<string[]>([])
     const [selectDevID, setSelectDevID] = useState(null)
@@ -100,27 +101,31 @@ export default function HomePage() {
     // }, [client])
 
     useEffect(() => {
-        const client = mqtt.connect(connectUrl, options);
         const TOPIC = '/nodejs/mqtt'
+        const Topic2 = '/get/type_data'
         client.on('connect', () => {
             console.log('Connected')
-            client.subscribe([TOPIC], () => {
-              console.log(`Subscribe to topic '${TOPIC}'`)
+            client.subscribe([TOPIC, Topic2], () => {
+                console.log(`Subscribe all `)
             })
-            // client.publish(topic, 'Client:', { qos: 0, retain: false }, (error) => {
-            //   if (error) {
-            //     console.error(error)
-            //   }
-            // })
-          })
-          client.on('message', (topic, payload) => {
-            console.log('Received Message', topic, payload.toString())
-            if (topic == TOPIC){
-                let s = payload.toString().indexOf("{")
+        })
 
-                setDataLatest(new MetaData(JSON.parse(payload.toString().slice(s))))
+    }, [])
+
+    useEffect(()=>{
+
+        client.on('message', (topic, payload) => {
+            console.log('Received Message', topic, payload.toString())
+            if (topic == '/nodejs/mqtt') {
+                let s = payload.toString().indexOf("{")
+                try {
+                    setDataLatest(new MetaData(JSON.parse(payload.toString().slice(s))))
+                }
+                catch (err) {
+                    setDataLatest(new MetaData())
+                }
             }
-          })
+        })
     }, [])
 
     return (
@@ -139,10 +144,17 @@ export default function HomePage() {
                 ))}
             </Select>
 
-            <Select style={{ width: 350, marginLeft: 100 }} defaultValue={1} onChange={setSelectDevID}>
-                <Option value={1} >Không mã hoá</Option>
-                <Option disabled value={2} >Mã hoá ChaCha</Option>
-                <Option  disabled value={3} >Mã hoá AES</Option>
+            <Select onChange={value => {
+                console.log('value = ', value)
+                client.publish('/get/type_data', value, { qos: 0, retain: false }, (error) => {
+                    if (error) {
+                        console.error(error)
+                    }
+                })
+            }} style={{ width: 350, marginLeft: 100 }} defaultValue={'not_encrypt'} >
+                <Option value={'not_encrypt'} >Không mã hoá</Option>
+                <Option value={'chacha_encrypt'} >Mã hoá ChaCha</Option>
+                <Option value={'aes_encrypt'} >Mã hoá AES</Option>
             </Select>
 
             <div style={{ marginTop: 30 }} />
