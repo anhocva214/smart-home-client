@@ -20,7 +20,7 @@ const CardDevice = ({ title, value }: { title: string, value: string }) => (
 
 const host = '113.161.225.11'
 // const host = 'localhost'
-const port = 4484
+const port = 4884
 const clientId = `mqtt_client_nextjs`
 const connectUrl = `mqtt://${host}:${port}`
 
