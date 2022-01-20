@@ -119,14 +119,17 @@ export default function HomePage() {
             if (topic == '/nodejs/mqtt') {
                 let s = payload.toString().indexOf("{")
                 try {
-                    setDataLatest(new MetaData(JSON.parse(payload.toString().slice(s))))
+                    let data = new MetaData(JSON.parse(payload.toString().slice(s)))
+                    if (data.devID == selectDevID){
+                        setDataLatest(data)
+                    }
                 }
                 catch (err) {
                     setDataLatest(new MetaData())
                 }
             }
         })
-    }, [])
+    }, [selectDevID])
 
     return (
         // <Connector brokerUrl="wss://test.mosquitto.org:1884">
@@ -137,9 +140,9 @@ export default function HomePage() {
             minHeight: '100vh'
         }}>
 
-            <Select style={{ width: 350 }} defaultValue={null} onChange={setSelectDevID}>
+            <Select style={{ width: 350 }} defaultValue={null} onChange={value => setSelectDevID(selectDevID => value)}>
                 <Option value={null} >Chọn thiết bị</Option>
-                {devIDs.filter(item => !!item).map((item) => (
+                {[1, 2, 3].filter(item => !!item).map((item) => (
                     <Option key={item} value={item} >{item}</Option>
                 ))}
             </Select>
