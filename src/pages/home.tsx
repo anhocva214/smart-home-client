@@ -140,7 +140,10 @@ export default function HomePage() {
             minHeight: '100vh'
         }}>
 
-            <Select style={{ width: 350 }} defaultValue={null} onChange={value => setSelectDevID(selectDevID => value)}>
+            <Select style={{ width: 350 }} defaultValue={null} onChange={value => {
+                setSelectDevID(selectDevID => value)
+                setDataLatest(new MetaData())
+            }}>
                 <Option value={null} >Chọn thiết bị</Option>
                 {[1, 2, 3].filter(item => !!item).map((item) => (
                     <Option key={item} value={item} >{item}</Option>
