@@ -121,6 +121,7 @@ export default function HomePage() {
                 try {
                     let data = new MetaData(JSON.parse(payload.toString().slice(s)))
                     if (data.devID == selectDevID){
+                        console.log(selectDevID, " - ", data.devID)
                         setDataLatest(data)
                     }
                 }
