@@ -146,7 +146,7 @@ export default function HomePage() {
                 setDataLatest(new MetaData())
             }}>
                 <Option value={null} >Chọn thiết bị</Option>
-                {[1, 2, 3].filter(item => !!item).map((item) => (
+                {[1, 2, 3, 4, 5,6,7,8,9,10].filter(item => !!item).map((item) => (
                     <Option key={item} value={item} >{item}</Option>
                 ))}
             </Select>
