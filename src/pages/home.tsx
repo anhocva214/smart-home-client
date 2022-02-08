@@ -1,5 +1,5 @@
 import { deviceApi } from '@apis/exports';
-import { Card, Col, Row, Statistic, Select, Space } from 'antd';
+import { Card, Col, Row, Statistic, Select, Switch, Button } from 'antd';
 const { Option } = Select;
 import { useEffect, useState } from 'react';
 import { MetaData } from 'src/models/device.model';
@@ -7,16 +7,27 @@ import { Connector, useMqttState } from 'mqtt-react-hooks';
 import mqtt from 'mqtt'
 
 
-const CardDevice = ({ title, value }: { title: string, value: string }) => (
-    <Card title={title}>
-        <Statistic
-            value={value}
-            // precision={2}
-            valueStyle={{ color: '#0d8add' }}
-        // suffix="%"
-        />
-    </Card>
-)
+const CARD_HAS_SWITCH = ['status1', 'status2']
+
+const CardDevice = ({ title, value , onSwitch}: { title: string, value: string, onSwitch?: (value) => void}) => {
+    console.log(value, ' - ', value == 'ON')
+    return (
+        <Card title={title}>
+            <Statistic
+                value={value}
+                // precision={2}
+                valueStyle={{ color: '#0d8add' }}
+            // suffix="%"
+            />
+
+            {
+                CARD_HAS_SWITCH.indexOf(title) >= 0 && (
+                    <Switch checked={value == "ON" ? true : false} onChange={e => onSwitch(e)} />
+                )
+            }
+        </Card>
+    )
+}
 
 const host = '113.161.225.11'
 // const host = 'localhost'
@@ -57,62 +68,19 @@ export default function HomePage() {
     const [selectDevID, setSelectDevID] = useState(null)
     // const [dataMetaData, setDataMetaData] = useState<MetaData[]>([])
 
-    // const { connectionStatus } = useMqttState();
-
-    // useEffect(() => {
-    //     setInterval(() => {
-    //         (async () => {
-    //             let response = await deviceApi.getListMetaData()
-    //             let data = response.data.map(item => new MetaData(item))
-    //             setDataMetaData(data)
-    //             setDevIDs(Array.from(
-    //                 new Set(data.map((item: MetaData) => {
-    //                     return item.devID
-    //                 }))
-    //             ))
-    //         })()
-    //     }, 1000)
-
-    //     // console.log("connectionStatus: ", connectionStatus)
-    // }, [])
-
-    // useEffect(() => {
-    //     // console.log(selectDevID)
-    //     if (dataMetaData.length > 0 && !!selectDevID) {
-    //         let data = dataMetaData.filter(item => item.devID == selectDevID)
-    //         setDataLatest(data[data.length - 1])
-    //     }
-    // }, [selectDevID, dataMetaData])
-
-    // useEffect(() => {
-    //     console.log(devIDs)
-    // },[devIDs])
-
-    // useEffect(() => {
-    //     if (client){
-    //         client.on('message', function (topic, message) {
-    //             // message is Buffer
-    //             console.log(message.toString())
-    //             // client.end()
-    //         })
-    //     }
-
-
-    // }, [client])
 
     useEffect(() => {
-        const TOPIC = '/nodejs/mqtt'
-        const Topic2 = '/get/type_data'
+        const TOPICS = ['/nodejs/mqtt', '/get/type_data', '/node/relay1', '/node/relay2']
         client.on('connect', () => {
             console.log('Connected')
-            client.subscribe([TOPIC, Topic2], () => {
-                console.log(`Subscribe all `)
+            client.subscribe(TOPICS, () => {
+                console.log(`Subscribe `, TOPICS)
             })
         })
 
     }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
 
         client.on('message', (topic, payload) => {
             console.log('Received Message', topic, payload.toString())
@@ -120,7 +88,7 @@ export default function HomePage() {
                 let s = payload.toString().indexOf("{")
                 try {
                     let data = new MetaData(JSON.parse(payload.toString().slice(s)))
-                    if (data.devID == selectDevID){
+                    if (data.devID == selectDevID) {
                         console.log(selectDevID, " - ", data.devID)
                         setDataLatest(data)
                     }
@@ -131,6 +99,15 @@ export default function HomePage() {
             }
         })
     }, [selectDevID])
+
+    const publishStatusBtn = (value: 'ON' | 'OFF', key: string) => {
+        console.log(key == 'status1' ? '/node/relay1': '/node/relay2', value)
+        setDataLatest({
+            ...dataLatest,
+            [key]: value
+        })
+        client.publish(key == 'status1' ? '/node/relay1': '/node/relay2', value, {qos: 1, retain: true})
+    }
 
     return (
         // <Connector brokerUrl="wss://test.mosquitto.org:1884">
@@ -146,7 +123,7 @@ export default function HomePage() {
                 setDataLatest(new MetaData())
             }}>
                 <Option value={null} >Chọn thiết bị</Option>
-                {[1, 2, 3, 4, 5,6,7,8,9,10].filter(item => !!item).map((item) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(item => !!item).map((item) => (
                     <Option key={item} value={item} >{item}</Option>
                 ))}
             </Select>
@@ -169,16 +146,18 @@ export default function HomePage() {
             <Row gutter={[16, 16]}>
                 {Object.keys(dataLatest).map((key) => {
                     if (key != 'id' && key != 'devID')
-                        if (key != 'create_at')
+                        if (key != 'create_at') {
                             return (
                                 <Col span={6} key={key} >
                                     <CardDevice
                                         title={key}
                                         value={dataLatest[key]}
+                                        onSwitch={(value: boolean) =>publishStatusBtn(value?'ON':'OFF', key)}
                                     />
                                 </Col>
                             )
-
+                        }
+                        else return ""
                 })}
 
                 <Col span={6}>
