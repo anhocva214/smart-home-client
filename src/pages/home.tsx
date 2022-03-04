@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { MetaData } from 'src/models/device.model';
 import { Connector, useMqttState } from 'mqtt-react-hooks';
 import mqtt from 'mqtt'
-
+import JSChaCha20 from '@utils/jschacha20'
 
 const CARD_HAS_SWITCH = ['status1', 'status2']
 
@@ -66,11 +66,22 @@ export default function HomePage() {
     const [dataLatest, setDataLatest] = useState<MetaData>(new MetaData())
     const [devIDs, setDevIDs] = useState<string[]>([])
     const [selectDevID, setSelectDevID] = useState(null)
+    const [selectModeEncrypt, setSelectModeEncrypt] = useState<'not_encrypt' | 'chacha_encrypt' | 'aes_encrypt'>('not_encrypt')
     // const [dataMetaData, setDataMetaData] = useState<MetaData[]>([])
+
+    const key = new Uint8Array([
+        0x54, 0x50, 0x4e, 0x56, 0x61, 0x68, 0x50, 0x20, 0x33, 0x20, 0x65, 0x73, 0x63,
+        0x65, 0x53, 0x20, 0x20, 0x74, 0x65, 0x72, 0x20, 0x79, 0x65, 0x6b, 0x54, 0x20,
+        0x79, 0x62, 0x68, 0x6e, 0x61, 0x68,
+      ]); // 32 bytes key
+      const nonce = new Uint8Array([0x4f, 0x2b, 0x6d, 0xc2, 0x40, 0xcc, 0xf1, 0x8a]); // 8 bytes nonce
+      const blockNumber = new Uint8Array([
+        0xed, 0x48, 0x7e, 0x24, 0x1e, 0xe9, 0x37, 0x5,
+      ]); // 8 bytes blockNumber
 
 
     useEffect(() => {
-        const TOPICS = ['/nodejs/mqtt', '/get/type_data', '/node/relay1', '/node/relay2']
+        const TOPICS = ['/nodejs/mqtt', '/get/type_data', '/node/relay1', '/node/relay2', '/post/data/chacha_encrypt']
         client.on('connect', () => {
             console.log('Connected')
             client.subscribe(TOPICS, () => {
@@ -80,11 +91,22 @@ export default function HomePage() {
 
     }, [])
 
+    function numberToChar(number) {
+        let i;
+        let r="";
+        for (i = 0; i < number.length; i++) {
+          r+= String.fromCharCode(number[i])
+        }
+
+        return r
+      }
+
     useEffect(() => {
 
         client.on('message', (topic, payload) => {
-            console.log('Received Message', topic, payload.toString())
-            if (topic == '/nodejs/mqtt') {
+            console.log('Received Message', topic, payload)
+            console.log("selectModeEncrypt: ", selectModeEncrypt)
+            if (topic == '/nodejs/mqtt' && selectModeEncrypt == 'not_encrypt') {
                 let s = payload.toString().indexOf("{")
                 try {
                     let data = new MetaData(JSON.parse(payload.toString().slice(s)))
@@ -97,8 +119,18 @@ export default function HomePage() {
                     setDataLatest(new MetaData())
                 }
             }
+            else if (topic == '/post/data/chacha_encrypt' && selectModeEncrypt == 'chacha_encrypt'){
+                
+                let message = new JSChaCha20(key, nonce, blockNumber).decrypt(payload);
+                console.log(numberToChar(message))
+                let data = new MetaData(JSON.parse(numberToChar(message)))
+                if (data.devID == selectDevID) {
+                    console.log(selectDevID, " - ", data.devID)
+                    setDataLatest(data)
+                }
+            }
         })
-    }, [selectDevID])
+    }, [selectDevID, selectModeEncrypt])
 
     const publishStatusBtn = (value: 'ON' | 'OFF', key: string) => {
         console.log(key == 'status1' ? '/node/relay1': '/node/relay2', value)
@@ -129,7 +161,8 @@ export default function HomePage() {
             </Select>
 
             <Select onChange={value => {
-                console.log('value = ', value)
+                // console.log('value = ', value)
+                setSelectModeEncrypt(value)
                 client.publish('/get/type_data', value, { qos: 0, retain: false }, (error) => {
                     if (error) {
                         console.error(error)
