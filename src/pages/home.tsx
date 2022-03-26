@@ -111,21 +111,22 @@ export default function HomePage() {
                 try {
                     let data = new MetaData(JSON.parse(payload.toString().slice(s)))
                     if (data.devID == selectDevID) {
-                        console.log(selectDevID, " - ", data.devID)
+                        // console.log(selectDevID, " - ", data.devID)
                         setDataLatest(data)
                     }
                 }
                 catch (err) {
-                    setDataLatest(new MetaData())
+                    // setDataLatest(new MetaData())
                 }
             }
             else if (topic == '/post/data/chacha_encrypt' && selectModeEncrypt == 'chacha_encrypt'){
                 
                 let message = new JSChaCha20(key, nonce, blockNumber).decrypt(payload);
-                console.log(numberToChar(message))
+                // console.log(numberToChar(message))
                 let data = new MetaData(JSON.parse(numberToChar(message)))
+                console.log("data: ", data)
                 if (data.devID == selectDevID) {
-                    console.log(selectDevID, " - ", data.devID)
+                    // console.log(selectDevID, " - ", data.devID)
                     setDataLatest(data)
                 }
             }
