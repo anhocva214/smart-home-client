@@ -1,7 +1,9 @@
+import { alertActions } from '@actions/exports';
 import { Input } from 'antd';
 import { Button } from 'antd';
 import mqtt from 'mqtt'
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 
 const host = '113.161.225.11'
@@ -24,6 +26,8 @@ const client = mqtt.connect(connectUrl, options)
 
 
 export default function ReferencePage() {
+
+    const dispatch = useDispatch()
 
     const [ref1, setRef1] = useState('')
     const [ref2, setRef2] = useState('')
@@ -58,10 +62,14 @@ export default function ReferencePage() {
     }
 
     const submit = () => {
+        if (!ref1 || !ref2 || !ref3){
+            return dispatch(alertActions.alertError("You need to fill in all the information"))
+        }
         client.publish(TOPIC_REFERENCES.ref1, ref1, {qos: 1, retain: true})
         client.publish(TOPIC_REFERENCES.ref2, ref2, {qos: 1, retain: true})
         client.publish(TOPIC_REFERENCES.ref3, ref3, {qos: 1, retain: true})
         clear()
+        dispatch(alertActions.alertSuccess("Submit successfully"))
     }
 
 
@@ -82,15 +90,15 @@ export default function ReferencePage() {
                     >
                         <div className="field-form" style={{marginBottom: 30}} >
                             <label>Reference for relay</label>
-                            <Input onChange={e => setRef1(e.target.value)} />
+                            <Input onChange={e => setRef1(e.target.value)} value={ref1} />
                         </div>
                         <div className="field-form" style={{marginBottom: 30}} >
                             <label>Reference for voltage</label>
-                            <Input onChange={e => setRef2(e.target.value)} />
+                            <Input onChange={e => setRef2(e.target.value)} value={ref2} />
                         </div>
                         <div className="field-form" style={{marginBottom: 30}} >
                             <label>Reference for current</label>
-                            <Input onChange={e => setRef3(e.target.value)} />
+                            <Input onChange={e => setRef3(e.target.value)} value={ref3} />
                         </div>
                         <Button onClick={submit} type="primary" block>Submit</Button>
                     </div>
